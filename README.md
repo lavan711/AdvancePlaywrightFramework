@@ -1,44 +1,57 @@
 # AdvancePlaywrightFramework
 
-AdvancePlaywrightFramework is a Playwright + TypeScript automation framework built for the TTACart application. It follows a clean Page Object Model structure, includes environment-aware configuration, custom reporting, reusable utilities, and a ready-to-run login spec.
+AdvancePlaywrightFramework is a Playwright + TypeScript automation framework for the TTACart web application. It is designed to help teams build scalable, maintainable UI test automation using a modular structure, reusable fixtures, environment-aware configuration, and page object abstractions.
 
-## Features
+## Highlights
 
-- Playwright test setup with browser/device configuration
-- Page Object Model for maintainable UI automation
-- Custom logging using Winston
-- Reusable locator abstraction for stable element interactions
-- Faker-based data generation helpers
-- Custom HTML report generation for test automation results
-- Environment-driven base URL selection via `BASE_URL` / `TTA_ENV`
+- Playwright-based UI automation with TypeScript
+- Page Object Model for login, inventory, cart, and checkout flows
+- Reusable custom fixtures for application state setup
+- Environment-variable-driven configuration
+- Data generation for realistic credentials and customer data
+- Structured logging and custom HTML reporting
+- Support for both simple login tests and end-to-end checkout scenarios
 
 ## Project structure
 
 ```text
 .
-├── .github/                 GitHub workflow files
-├── docs/                   Project docs and notes
-├── rules/                  Rule/configuration notes
+├── .github/                    GitHub workflow files
+├── docs/                      Project documentation
+├── rules/                     Rule and standards documents
 ├── src/
-│   ├── pages/              Page Object Model classes
-│   ├── tests/              Playwright test specs
-│   └── utils/              Logger, locators, reporter, generators
+│   ├── config/                Environment and credential helpers
+│   ├── fixtures/              Custom Playwright fixtures and state setup
+│   ├── pages/                 Page Object Model classes
+│   ├── testdata/              JSON and data files used in tests
+│   ├── tests/
+│   │   ├── e2e/               End-to-end flow specs
+│   │   ├── login/             Login-focused specs
+│   │   └── example.spec.ts   Basic example smoke test
+│   └── utils/
+│       ├── CustomReporter.ts  Custom HTML report generator
+│       ├── DataGenerator.ts   Faker-based test data creation
+│       ├── logger.ts          Winston logger setup
+│       ├── UtilElementLocator.ts  Stable locator wrapper
+│       └── visualStep.ts      Screenshot-aware step helper
 ├── .gitignore
 ├── package.json
 ├── package-lock.json
-├── playwright.config.ts    Playwright configuration and env handling
+├── playwright.config.ts
 ├── tsconfig.json
 ├── README.md
-├── logs/                   Runtime logs (created during execution)
-├── reports/                Summary reports (created during execution)
-└── playwright-report/      HTML Playwright report output
+├── logs/                      Log files generated at runtime
+├── reports/                   JSON run summaries
+├── playwright-report/         Playwright HTML output
+├── tta-report/                Custom TTA HTML report output
+└── node_modules/              Installed dependencies
 ```
 
 ## Prerequisites
 
 - Node.js 18 or later
 - npm
-- Playwright browsers installed
+- Playwright browser binaries installed
 
 ## Setup
 
@@ -49,9 +62,9 @@ npx playwright install --with-deps
 
 ## Environment configuration
 
-The framework resolves the application URL from environment variables in `playwright.config.ts`.
+The framework loads environment values from `.env` and resolves the application base URL in `playwright.config.ts`.
 
-Supported variables:
+Common variables:
 
 ```bash
 BASE_URL=
@@ -61,9 +74,11 @@ PROD_BASE_URL=
 DEV_BASE_URL=
 API_BASE_URL=
 TTA_ENV=qa
+STANDARD_USER=standard_user
+TTA_SECRET=tta_secret
 ```
 
-If no environment variables are set, the default QA URL is used:
+If no variables are provided, the framework falls back to the QA TTACart URL:
 
 - `https://app.thetestingacademy.com`
 
@@ -75,26 +90,61 @@ Run the full suite:
 npx playwright test
 ```
 
-Run a single spec:
+Run a single login spec:
 
 ```bash
-npx playwright test src/tests/Login.spec.ts --project=chromium
+npx playwright test src/tests/login/Login.spec.ts --project=chromium
 ```
 
-Open the HTML report after execution:
+Run the checkout end-to-end flow:
+
+```bash
+npx playwright test src/tests/e2e/e2e-checkout.spec.ts --project=chromium
+```
+
+Open the built-in HTML report:
 
 ```bash
 npx playwright show-report
 ```
 
-## Example test flow
+Open the custom TTA HTML report if generated:
 
-The repository includes a login flow using the `LoginPage` page object:
+```bash
+npx playwright test
+# then open the HTML file generated under tta-report/
+```
+
+## Example usage
+
+### Login page object
 
 ```ts
+import { LoginPage } from '@pages/LoginPage';
+
 const loginPage = new LoginPage(page);
 await loginPage.open();
 await loginPage.loginAs('standard_user', 'tta_secret');
 ```
 
-This project is structured to be extended with additional page objects, fixtures, and API test layers as the suite grows.
+### Fixture-based test setup
+
+```ts
+import { test } from '@fixtures/test-base';
+
+test('login and navigate to inventory', async ({ loginPage, inventoryPage }) => {
+  await loginPage.open();
+  await loginPage.loginAs('standard_user', 'tta_secret');
+  await inventoryPage.assertLoaded();
+});
+```
+
+## Included capabilities
+
+- Login automation using TTACart data-test selectors
+- Inventory page interactions, cart validation, and checkout flow coverage
+- Fixture-driven state preparation such as `validLogin`, `invalidLogin`, and `loginWithInventory`
+- Data generation using Faker for credentials and customer checkout info
+- Custom logs, screenshots, and HTML test reporting to speed up debugging
+
+This repository is built for extension: new screen objects, fixtures, and API layers can be added without disrupting the current test architecture.

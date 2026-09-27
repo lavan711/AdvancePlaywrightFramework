@@ -15,10 +15,12 @@
     },
     "ignoreDeprecations": "6.0",
     "strict": true,
+    "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noEmit": true,
     "types": ["node", "@playwright/test"]
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "playwright.config.ts"]
+  "include": ["src", "playwright.config.ts"],
+  "exclude": ["node_modules"]
 }

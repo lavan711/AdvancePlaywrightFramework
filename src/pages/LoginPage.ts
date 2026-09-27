@@ -1,5 +1,5 @@
-import { Locator, Page } from '@playwright/test';
-import { BasePage } from '@/pages/BasePage';
+import { expect, Locator, Page } from '@playwright/test';
+import { BasePage } from './BasePage';
 
 /**
  * TTACart login screen.
@@ -8,6 +8,7 @@ import { BasePage } from '@/pages/BasePage';
  *   await login.open();
  *   await login.loginAs('standard_user', 'tta_secret');
  */
+
 
 
 export class LoginPage extends BasePage {
@@ -39,8 +40,13 @@ export class LoginPage extends BasePage {
         await this.el.fill(this.usernameInput, username);
         await this.el.fill(this.passwordInput, password);
         await this.el.click(this.loginButton);
+        await expect.poll(async () => (
+            this.page.url().includes('/inventory') || await this.errorBox.isVisible()
+        )).toBe(true);
     }
 
-
+    async waitForLoginButtonHidden(): Promise<void> {
+        await this.el.waitForHidden(this.loginButton);
+    }
 
 }
